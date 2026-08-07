@@ -18,6 +18,7 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy app
+      - run: python -m scripts.exportar_openapi --check
       - run: pytest -m "not integration"
       - run: docker compose up -d --wait
       - run: pytest -m integration

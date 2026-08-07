@@ -23,7 +23,8 @@ uvicorn app.main:app --reload
 ```
 
 Configura en `.env` el issuer y audience reales de Auth0. No se almacenan
-contraseñas ni secretos. OpenAPI queda en `http://localhost:8000/docs`.
+contraseñas ni secretos. OpenAPI queda en `http://localhost:8000/docs` y su
+instantánea versionada en `openapi.json`.
 
 ## API
 
@@ -37,6 +38,7 @@ comprueba MongoDB, crea índices y sincroniza referencias ISO en `/health/ready`
 ruff check .
 ruff format --check .
 mypy app
+python -m scripts.exportar_openapi --check
 pytest -m "not integration"
 pytest -m integration
 ```
