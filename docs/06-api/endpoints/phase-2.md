@@ -5,7 +5,7 @@ Base autenticada tenant-scoped:
 de fase 2. El servidor deriva `ContextoTaller` desde JWT y Membresía y valida
 toda referencia; un ID cross-tenant se comporta como ausente.
 
-Listados usan `limit` (20 por defecto, 100 máximo), `cursor`, respuesta
+Listados usan `limite` (20 por defecto, 100 máximo), `cursor`, respuesta
 `{items, siguiente_cursor}` y cursores tenant-bound. IDs son opacos. PATCH es
 parcial; omitido conserva y `null` limpia solo opcionales.
 
@@ -19,9 +19,15 @@ parcial; omitido conserva y `null` limpia solo opcionales.
 | GET | `/api/v1/referencias/monedas/{codigo}` | consultar Moneda |
 | POST | `/api/v1/talleres` | exige `nombre`, `pais_codigo`, `moneda_codigo`; crea dueño y `Efectivo` |
 | PATCH | `/api/v1/talleres/{taller_id}` | editar nombre, país o moneda |
+| GET | `/api/v1/talleres/{taller_id}/resumen-operativo` | métricas del periodo calculadas por el backend |
 
 Referencias requieren autenticación pero no Taller y son de solo lectura. No se
 valida correspondencia país–moneda.
+
+El resumen usa 30 días por defecto mediante `periodo_dias`; admite
+`fecha_desde`/`fecha_hasta`. Devuelve conteos y series de Órdenes, junto con
+totales y series de Pagos separados por moneda snapshot. Nunca suma ni convierte
+monedas distintas y devuelve ceros/listas vacías cuando no existe actividad.
 
 ## Catálogos técnicos y servicios
 
@@ -70,6 +76,10 @@ opcional; una de Repuesto exige `repuesto_id`, cantidad y precio opcional. El
 descuento usa exactamente `{tipo: "fijo", monto}` o
 `{tipo: "porcentaje", porcentaje}`. Importes son strings decimales.
 
+GET `/ordenes` admite `estado`, `grupo`, `cliente_id`, `dispositivo_id` y
+`texto`. `grupo` acepta `abiertas`, `pendientes_recogida` o `entregadas`; esos
+conjuntos se resuelven en el backend y no se reconstruyen en el frontend.
+
 ## Proveedores e Inventario
 
 | Método | Ruta | Capacidad |
@@ -85,6 +95,10 @@ descuento usa exactamente `{tipo: "fijo", monto}` o
 Entrada exige `cantidad`, `costo_unitario` y admite `proveedor_id`, `nota`.
 Ajuste exige `delta` no cero y `motivo`. Stock insuficiente es `409` y no deja
 efectos parciales.
+
+Proveedores y Repuestos admiten `texto` y `activo`; DELETE los desactiva
+lógicamente. Métodos de pago y catálogos también usan DELETE exclusivamente
+para desactivación lógica.
 
 ## Métodos y Pagos
 

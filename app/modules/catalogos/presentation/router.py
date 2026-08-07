@@ -4,7 +4,7 @@ from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.modules.catalogos.application.errores import CursorCatalogoInvalido
@@ -247,6 +247,18 @@ def crear_router_catalogos(
             await servicio.actualizar(contexto, "tipo", item_id, entrada.a_cambios())
         )
 
+    @router.delete("/tipos-dispositivo/{item_id}", status_code=204)
+    async def desactivar_tipo(
+        item_id: str, servicio: Servicio, contexto: Contexto
+    ) -> Response:
+        await servicio.actualizar(
+            contexto,
+            "tipo",
+            item_id,
+            CambiosCatalogo(activo_definido=True, activo=False),
+        )
+        return Response(status_code=204)
+
     @router.post(
         "/marcas-dispositivo",
         response_model=CatalogoSalida,
@@ -291,6 +303,18 @@ def crear_router_catalogos(
         return _salida(
             await servicio.actualizar(contexto, "marca", item_id, entrada.a_cambios())
         )
+
+    @router.delete("/marcas-dispositivo/{item_id}", status_code=204)
+    async def desactivar_marca(
+        item_id: str, servicio: Servicio, contexto: Contexto
+    ) -> Response:
+        await servicio.actualizar(
+            contexto,
+            "marca",
+            item_id,
+            CambiosCatalogo(activo_definido=True, activo=False),
+        )
+        return Response(status_code=204)
 
     @router.post(
         "/modelos-dispositivo",
@@ -343,6 +367,17 @@ def crear_router_catalogos(
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
         return _salida_modelo(item)
+
+    @router.delete("/modelos-dispositivo/{item_id}", status_code=204)
+    async def desactivar_modelo(
+        item_id: str, servicio: Servicio, contexto: Contexto
+    ) -> Response:
+        await servicio.actualizar_modelo(
+            contexto,
+            item_id,
+            CambiosModelo(activo_definido=True, activo=False),
+        )
+        return Response(status_code=204)
 
     @router.post(
         "/tipos-servicio",
@@ -402,5 +437,16 @@ def crear_router_catalogos(
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
         return _salida_servicio(item)
+
+    @router.delete("/tipos-servicio/{item_id}", status_code=204)
+    async def desactivar_tipo_servicio(
+        item_id: str, servicio: Servicio, contexto: Contexto
+    ) -> Response:
+        await servicio.actualizar_tipo_servicio(
+            contexto,
+            item_id,
+            CambiosTipoServicio(activo_definido=True, activo=False),
+        )
+        return Response(status_code=204)
 
     return router

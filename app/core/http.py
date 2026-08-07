@@ -7,6 +7,7 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel
 
 from app.shared.application.errores import (
     Conflicto,
@@ -17,6 +18,25 @@ from app.shared.application.errores import (
 )
 
 logger = logging.getLogger("taller.api")
+
+
+class DetalleErrorSalida(BaseModel):
+    """Detalle seguro de un campo inválido."""
+
+    campo: str
+    mensaje: str
+    tipo: str
+
+
+class ErrorSalida(BaseModel):
+    """Contrato uniforme de errores de la API."""
+
+    codigo: str
+    mensaje: str
+    correlacion_id: str
+    detalles: list[DetalleErrorSalida] | None = None
+
+
 ESTADOS_ERROR: dict[type[ErrorAplicacion], int] = {
     NoAutenticado: 401,
     Prohibido: 403,

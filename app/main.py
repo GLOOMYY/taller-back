@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.composition import Contenedor, crear_contenedor, crear_dependencias
 from app.core.config import Settings, get_settings
-from app.core.http import configurar_http
+from app.core.http import ErrorSalida, configurar_http
 from app.core.mongodb import comprobar_mongodb
 from app.modules.catalogos.presentation.router import crear_router_catalogos
 from app.modules.clientes.presentation.router import crear_router as router_clientes
@@ -41,6 +41,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="Taller API",
         version="0.2.0",
         lifespan=lifespan,
+        responses={
+            400: {"model": ErrorSalida, "description": "Solicitud inválida"},
+            401: {"model": ErrorSalida, "description": "No autenticado"},
+            403: {"model": ErrorSalida, "description": "Acceso prohibido"},
+            404: {"model": ErrorSalida, "description": "Recurso no encontrado"},
+            409: {"model": ErrorSalida, "description": "Conflicto de negocio"},
+            422: {"model": ErrorSalida, "description": "Entrada inválida"},
+        },
     )
     application.state.contenedor = contenedor
     application.add_middleware(
@@ -71,7 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api.include_router(router_clientes(obtener_servicio_clientes, obtener_contexto))
     api.include_router(
         crear_router_referencias(
-            lambda: contenedor.referencias.servicio, obtener_contexto
+            lambda: contenedor.referencias.servicio, obtener_identidad
         )
     )
     api.include_router(

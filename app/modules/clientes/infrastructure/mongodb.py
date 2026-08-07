@@ -3,6 +3,7 @@
 import base64
 import binascii
 import json
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -49,9 +50,17 @@ class RepositorioClientesMongo:
         *,
         limite: int,
         cursor: str | None,
+        texto: str | None = None,
     ) -> PaginaClientes:
         """Lista por Taller y `_id` ascendente con cursor estable."""
         filtro: dict[str, Any] = {"taller_id": contexto.taller_id}
+        if texto and texto.strip():
+            expresion = {"$regex": re.escape(texto.strip()), "$options": "i"}
+            filtro["$or"] = [
+                {"nombre": expresion},
+                {"telefono": expresion},
+                {"correo": expresion},
+            ]
         if cursor is not None:
             ultimo_id = self._decodificar_cursor(cursor, contexto.taller_id)
             filtro["_id"] = {"$gt": ultimo_id}

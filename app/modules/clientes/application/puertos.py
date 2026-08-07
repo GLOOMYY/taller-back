@@ -28,6 +28,7 @@ class RepositorioClientes(Protocol):
         *,
         limite: int,
         cursor: str | None,
+        texto: str | None = None,
     ) -> PaginaClientes:
         """Lista Clientes del Taller con orden determinista."""
         ...

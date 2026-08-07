@@ -91,6 +91,13 @@ class ServicioTalleres:
             raise NoEncontrado("Taller no encontrado")
         return taller
 
+    async def rol_actual(self, usuario_id: str, taller_id: str) -> str:
+        """Obtiene el rol actual sin exponer la Membresía completa."""
+        rol = await self._accesos.obtener_rol_actual(usuario_id, taller_id)
+        if rol is None:
+            raise NoEncontrado("Taller no encontrado")
+        return rol
+
     async def actualizar(
         self,
         contexto: ContextoTaller,

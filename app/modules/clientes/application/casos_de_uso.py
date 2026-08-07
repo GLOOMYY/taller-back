@@ -43,11 +43,18 @@ class ServicioClientes:
         *,
         limite: int = LIMITE_PREDETERMINADO,
         cursor: str | None = None,
+        texto: str | None = None,
     ) -> PaginaClientes:
         """Lista Clientes del Taller autorizado."""
         if limite < 1 or limite > LIMITE_MAXIMO:
             raise ValueError(f"El límite debe estar entre 1 y {LIMITE_MAXIMO}.")
-        return await self._repositorio.listar(contexto, limite=limite, cursor=cursor)
+        if texto is None:
+            return await self._repositorio.listar(
+                contexto, limite=limite, cursor=cursor
+            )
+        return await self._repositorio.listar(
+            contexto, limite=limite, cursor=cursor, texto=texto
+        )
 
     async def obtener(self, contexto: ContextoTaller, cliente_id: str) -> Cliente:
         """Obtiene un Cliente sin revelar registros de otros Talleres."""

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import json
+import re
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Any, cast
 from uuid import uuid4
@@ -128,13 +130,22 @@ class ServicioOperaciones:
         return _salida(documento)
 
     async def listar_proveedores(
-        self, contexto: ContextoTaller, activo: bool | None = None
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        activo: bool | None = None,
+        texto: str | None = None,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         filtro: dict[str, Any] = {"taller_id": contexto.taller_id}
         if activo is not None:
             filtro["activo"] = activo
-        cursor = self._db.proveedores.find(filtro).sort("_id", 1)
-        return [_serializar(item) async for item in cursor]
+        if texto and texto.strip():
+            expresion = {"$regex": re.escape(texto.strip()), "$options": "i"}
+            filtro["$or"] = [{"nombre": expresion}, {"contacto": expresion}]
+        return await self._listar_pagina(
+            self._db.proveedores, filtro, contexto, "proveedores", cursor, limite
+        )
 
     async def obtener_proveedor(
         self, contexto: ContextoTaller, proveedor_id: str
@@ -195,13 +206,22 @@ class ServicioOperaciones:
         return _salida(documento)
 
     async def listar_repuestos(
-        self, contexto: ContextoTaller, activo: bool | None = None
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        activo: bool | None = None,
+        texto: str | None = None,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         filtro: dict[str, Any] = {"taller_id": contexto.taller_id}
         if activo is not None:
             filtro["activo"] = activo
-        cursor = self._db.repuestos.find(filtro).sort("_id", 1)
-        return [_serializar(item) async for item in cursor]
+        if texto and texto.strip():
+            expresion = {"$regex": re.escape(texto.strip()), "$options": "i"}
+            filtro["$or"] = [{"nombre": expresion}, {"codigo": expresion}]
+        return await self._listar_pagina(
+            self._db.repuestos, filtro, contexto, "repuestos", cursor, limite
+        )
 
     async def obtener_repuesto(
         self, contexto: ContextoTaller, repuesto_id: str
@@ -315,16 +335,24 @@ class ServicioOperaciones:
         return _salida(movimiento)
 
     async def listar_movimientos(
-        self, contexto: ContextoTaller, repuesto_id: str
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        repuesto_id: str,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         if not await self._db.repuestos.find_one(
             {"_id": repuesto_id, "taller_id": contexto.taller_id}
         ):
             raise NoEncontrado("Repuesto no encontrado")
-        cursor = self._db.movimientos_stock.find(
-            {"taller_id": contexto.taller_id, "repuesto_id": repuesto_id}
-        ).sort([("creado_en", 1), ("_id", 1)])
-        return [_serializar(item) async for item in cursor]
+        return await self._listar_pagina(
+            self._db.movimientos_stock,
+            {"taller_id": contexto.taller_id, "repuesto_id": repuesto_id},
+            contexto,
+            f"movimientos:{repuesto_id}",
+            cursor,
+            limite,
+        )
 
     async def _movimiento(
         self,
@@ -370,13 +398,28 @@ class ServicioOperaciones:
         return _salida(documento)
 
     async def listar_metodos_pago(
-        self, contexto: ContextoTaller, activo: bool | None = None
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        activo: bool | None = None,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         filtro: dict[str, Any] = {"taller_id": contexto.taller_id}
         if activo is not None:
             filtro["activo"] = activo
-        cursor = self._db.metodos_pago.find(filtro).sort("_id", 1)
-        return [_serializar(item) async for item in cursor]
+        return await self._listar_pagina(
+            self._db.metodos_pago, filtro, contexto, "metodos-pago", cursor, limite
+        )
+
+    async def obtener_metodo_pago(
+        self, contexto: ContextoTaller, metodo_id: str
+    ) -> dict[str, Any]:
+        documento = await self._db.metodos_pago.find_one(
+            {"_id": metodo_id, "taller_id": contexto.taller_id}
+        )
+        if documento is None:
+            raise NoEncontrado("Método de pago no encontrado")
+        return _salida(documento)
 
     async def actualizar_metodo_pago(
         self,
@@ -482,13 +525,47 @@ class ServicioOperaciones:
         return _salida(documento)
 
     async def listar_ordenes(
-        self, contexto: ContextoTaller, dispositivo_id: str | None = None
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        dispositivo_id: str | None = None,
+        estado: str | None = None,
+        grupo: str | None = None,
+        cliente_id: str | None = None,
+        texto: str | None = None,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         filtro: dict[str, Any] = {"taller_id": contexto.taller_id}
         if dispositivo_id:
             filtro["dispositivo_id"] = dispositivo_id
-        cursor = self._db.ordenes.find(filtro).sort("consecutivo", 1)
-        return [_serializar(item) async for item in cursor]
+        if estado:
+            filtro["estado"] = estado
+        elif grupo == "abiertas":
+            filtro["estado"] = {"$in": ["abierta", "en_proceso", "espera_repuesto"]}
+        elif grupo in {"pendientes_recogida", "entregadas"}:
+            filtro["estado"] = (
+                "pendiente_recogida" if grupo == "pendientes_recogida" else "entregado"
+            )
+        if cliente_id:
+            dispositivos = self._db.dispositivos.find(
+                {"taller_id": contexto.taller_id, "cliente_id": cliente_id}, {"_id": 1}
+            )
+            ids = [str(item["_id"]) async for item in dispositivos]
+            filtro["dispositivo_id"] = {"$in": ids}
+        if texto and texto.strip():
+            expresion = {"$regex": re.escape(texto.strip()), "$options": "i"}
+            condiciones: list[dict[str, Any]] = [
+                {"falla_reportada": expresion},
+                {"diagnostico": expresion},
+                {"trabajo_realizado": expresion},
+                {"notas": expresion},
+            ]
+            if texto.strip().isdigit():
+                condiciones.append({"consecutivo": int(texto.strip())})
+            filtro["$or"] = condiciones
+        return await self._listar_pagina(
+            self._db.ordenes, filtro, contexto, "ordenes", cursor, limite
+        )
 
     async def obtener_orden(
         self, contexto: ContextoTaller, orden_id: str
@@ -769,6 +846,18 @@ class ServicioOperaciones:
                 )
         return _salida(orden)
 
+    async def retirar_descuento(self, contexto: ContextoTaller, orden_id: str) -> None:
+        """Retira el descuento conservando la invariante frente a lo pagado."""
+        async with self._cliente.start_session() as sesion:
+            async with await sesion.start_transaction():
+                orden = await self._orden(contexto, orden_id, session=sesion)
+                self._mutable(orden)
+                orden["descuento"] = None
+                await self._guardar_totales(contexto, orden, session=sesion)
+                await self._historial(
+                    contexto, orden_id, "descuento_retirado", {}, session=sesion
+                )
+
     async def registrar_pago(
         self, contexto: ContextoTaller, orden_id: str, datos: Mapping[str, Any]
     ) -> dict[str, Any]:
@@ -845,13 +934,143 @@ class ServicioOperaciones:
         return _salida(pago)
 
     async def listar_pagos(
-        self, contexto: ContextoTaller, orden_id: str
-    ) -> list[dict[str, Any]]:
+        self,
+        contexto: ContextoTaller,
+        orden_id: str,
+        cursor: str | None = None,
+        limite: int = 20,
+    ) -> dict[str, Any]:
         await self._orden(contexto, orden_id)
-        cursor = self._db.pagos.find(
-            {"taller_id": contexto.taller_id, "orden_id": orden_id}
-        ).sort([("creado_en", 1), ("_id", 1)])
-        return [_serializar(item) async for item in cursor]
+        return await self._listar_pagina(
+            self._db.pagos,
+            {"taller_id": contexto.taller_id, "orden_id": orden_id},
+            contexto,
+            f"pagos:{orden_id}",
+            cursor,
+            limite,
+        )
+
+    async def resumen_operativo(
+        self,
+        contexto: ContextoTaller,
+        fecha_desde: date,
+        fecha_hasta: date,
+    ) -> dict[str, Any]:
+        """Calcula métricas tenant-aware sin combinar snapshots de moneda."""
+        inicio = datetime.combine(fecha_desde, time.min, tzinfo=UTC)
+        fin = datetime.combine(fecha_hasta + timedelta(days=1), time.min, tzinfo=UTC)
+        filtro = {
+            "taller_id": contexto.taller_id,
+            "creado_en": {"$gte": inicio, "$lt": fin},
+        }
+        ordenes = [item async for item in self._db.ordenes.find(filtro)]
+        estados = {
+            "abierta": 0,
+            "en_proceso": 0,
+            "espera_repuesto": 0,
+            "pendiente_recogida": 0,
+            "entregado": 0,
+        }
+        por_dia: dict[str, dict[str, int]] = {}
+        ids: list[str] = []
+        moneda_por_orden: dict[str, Mapping[str, Any]] = {}
+        for orden in ordenes:
+            estado = str(orden["estado"])
+            estados[estado] = estados.get(estado, 0) + 1
+            dia = orden["creado_en"].date().isoformat()
+            conteos = por_dia.setdefault(dia, {clave: 0 for clave in estados})
+            conteos[estado] += 1
+            orden_id = str(orden["_id"])
+            ids.append(orden_id)
+            moneda_por_orden[orden_id] = cast(Mapping[str, Any], orden["moneda"])
+
+        finanzas = (
+            {
+                str(item["_id"]): item
+                async for item in self._db.finanzas_ordenes.find(
+                    {"taller_id": contexto.taller_id, "_id": {"$in": ids}}
+                )
+            }
+            if ids
+            else {}
+        )
+        totales: dict[str, dict[str, Any]] = {}
+        for orden_id in ids:
+            moneda = moneda_por_orden[orden_id]
+            codigo = str(moneda["codigo"])
+            grupo = totales.setdefault(
+                codigo,
+                {
+                    "moneda_codigo": codigo,
+                    "moneda_simbolo": str(moneda["simbolo"]),
+                    "moneda_decimales": int(moneda["decimales"]),
+                    "ordenado": Decimal("0"),
+                    "pagado": Decimal("0"),
+                    "pendiente": Decimal("0"),
+                },
+            )
+            cuenta = finanzas.get(orden_id)
+            if cuenta:
+                grupo["ordenado"] += _decimal(cuenta["total"])
+                grupo["pagado"] += _decimal(cuenta["pagado"])
+                grupo["pendiente"] += _decimal(cuenta["saldo"])
+
+        pagos_por_dia: dict[str, dict[str, Decimal]] = {}
+        pagos = self._db.pagos.find(
+            {
+                "taller_id": contexto.taller_id,
+                "creado_en": {"$gte": inicio, "$lt": fin},
+                "estado": "confirmado",
+            }
+        )
+        async for pago in pagos:
+            moneda_pago = moneda_por_orden.get(str(pago["orden_id"]))
+            if moneda_pago is None:
+                orden = await self._db.ordenes.find_one(
+                    {"_id": pago["orden_id"], "taller_id": contexto.taller_id},
+                    {"moneda": 1},
+                )
+                if orden is None:
+                    continue
+                moneda_pago = cast(Mapping[str, Any], orden["moneda"])
+            dia = pago["creado_en"].date().isoformat()
+            diario = pagos_por_dia.setdefault(dia, {})
+            codigo = str(moneda_pago["codigo"])
+            diario[codigo] = diario.get(codigo, Decimal("0")) + _decimal(pago["total"])
+
+        return {
+            "fecha_desde": fecha_desde.isoformat(),
+            "fecha_hasta": fecha_hasta.isoformat(),
+            "conteos_por_estado": estados,
+            "activas": sum(
+                estados[item] for item in ("abierta", "en_proceso", "espera_repuesto")
+            ),
+            "pendientes_recogida": estados["pendiente_recogida"],
+            "entregadas": estados["entregado"],
+            "totales_por_moneda": [
+                {
+                    **grupo,
+                    "ordenado": format(grupo["ordenado"], "f"),
+                    "pagado": format(grupo["pagado"], "f"),
+                    "pendiente": format(grupo["pendiente"], "f"),
+                }
+                for _, grupo in sorted(totales.items())
+            ],
+            "serie_ordenes": [
+                {"fecha": dia, "conteos_por_estado": conteos}
+                for dia, conteos in sorted(por_dia.items())
+            ],
+            "serie_pagos": [
+                {
+                    "fecha": dia,
+                    "totales_por_moneda": [
+                        {"moneda_codigo": codigo, "total": format(total, "f")}
+                        for codigo, total in sorted(grupos.items())
+                    ],
+                }
+                for dia, grupos in sorted(pagos_por_dia.items())
+            ],
+        }
 
     async def anular_pago(
         self, contexto: ContextoTaller, pago_id: str, motivo: str
@@ -941,8 +1160,8 @@ class ServicioOperaciones:
                 contexto.taller_id, orden_id, str(elementos[-1]["_id"])
             )
         return {
-            "elementos": [_serializar(item) for item in elementos],
-            "cursor_siguiente": siguiente,
+            "items": [_serializar(item) for item in elementos],
+            "siguiente_cursor": siguiente,
         }
 
     async def _orden(
@@ -1042,6 +1261,69 @@ class ServicioOperaciones:
             },
             session=session,
         )
+
+    async def _listar_pagina(
+        self,
+        coleccion: Any,
+        filtro: dict[str, Any],
+        contexto: ContextoTaller,
+        recurso: str,
+        cursor: str | None,
+        limite: int,
+    ) -> dict[str, Any]:
+        """Pagina por ID estable con cursor ligado a Taller y recurso."""
+        if limite < 1 or limite > 100:
+            raise ValueError("limite debe estar entre 1 y 100")
+        if cursor:
+            item_id = self._decodificar_cursor_listado(
+                cursor, contexto.taller_id, recurso
+            )
+            filtro["_id"] = {"$gt": _id_mongo(item_id)}
+        consulta = coleccion.find(filtro).sort("_id", 1).limit(limite + 1)
+        documentos = [item async for item in consulta]
+        items = documentos[:limite]
+        siguiente = None
+        if len(documentos) > limite and items:
+            siguiente = self._codificar_cursor_listado(
+                contexto.taller_id, recurso, str(items[-1]["_id"])
+            )
+        return {
+            "items": [_serializar(item) for item in items],
+            "siguiente_cursor": siguiente,
+        }
+
+    @staticmethod
+    def _codificar_cursor_listado(taller_id: str, recurso: str, item_id: str) -> str:
+        contenido = json.dumps(
+            {"v": 1, "t": taller_id, "r": recurso, "id": item_id},
+            separators=(",", ":"),
+        ).encode()
+        return base64.urlsafe_b64encode(contenido).decode().rstrip("=")
+
+    @staticmethod
+    def _decodificar_cursor_listado(cursor: str, taller_id: str, recurso: str) -> str:
+        try:
+            contenido = base64.b64decode(
+                cursor + "=" * (-len(cursor) % 4), altchars=b"-_", validate=True
+            )
+            datos = json.loads(contenido)
+            if (
+                not isinstance(datos, dict)
+                or datos.get("v") != 1
+                or datos.get("t") != taller_id
+                or datos.get("r") != recurso
+                or not isinstance(datos.get("id"), str)
+            ):
+                raise ValueError
+            return str(datos["id"])
+        except (
+            binascii.Error,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            ValueError,
+            TypeError,
+        ) as error:
+            raise ValueError("cursor inválido") from error
 
     @staticmethod
     def _codificar_cursor(taller_id: str, orden_id: str, item_id: str) -> str:

@@ -19,4 +19,4 @@ def test_jwks_se_deriva_del_issuer() -> None:
 
 def test_produccion_rechaza_placeholders_locales() -> None:
     with pytest.raises(ValidationError):
-        Settings(entorno="production")
+        Settings(entorno="production", _env_file=None)

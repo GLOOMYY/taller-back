@@ -35,10 +35,11 @@ class TallerSalida(BaseModel):
     nombre: str
     pais_codigo: str
     moneda_codigo: str
+    rol_actual: str | None = None
 
 
 class PaginaTalleresSalida(BaseModel):
     """Página de Talleres con cursor opaco de continuación."""
 
-    elementos: list[TallerSalida]
-    cursor_siguiente: str | None
+    items: list[TallerSalida]
+    siguiente_cursor: str | None

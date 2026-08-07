@@ -127,9 +127,12 @@ def crear_router(
         contexto: Annotated[ContextoTaller, Depends(obtener_contexto)],
         limite: Annotated[int, Query(ge=1, le=LIMITE_MAXIMO)] = LIMITE_PREDETERMINADO,
         cursor: str | None = None,
+        texto: str | None = None,
     ) -> PaginaClientesSalida:
         try:
-            pagina = await servicio.listar(contexto, limite=limite, cursor=cursor)
+            pagina = await servicio.listar(
+                contexto, limite=limite, cursor=cursor, texto=texto
+            )
         except CursorClientesInvalido as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
         return PaginaClientesSalida(

@@ -30,7 +30,7 @@ def create_router(
         entrada: TallerEntrada,
         identidad: IdentidadDependencia,
     ) -> TallerSalida:
-        return TallerSalida.model_validate(
+        salida = TallerSalida.model_validate(
             await servicio.crear(
                 identidad,
                 nombre=entrada.nombre,
@@ -38,6 +38,8 @@ def create_router(
                 moneda_codigo=entrada.moneda_codigo,
             )
         )
+        salida.rol_actual = "dueno"
+        return salida
 
     @router.get("", response_model=PaginaTalleresSalida)
     async def listar(
@@ -46,23 +48,30 @@ def create_router(
         limite: Annotated[int, Query(ge=1, le=100)] = 20,
     ) -> PaginaTalleresSalida:
         pagina = await servicio.listar(identidad, cursor=cursor, limite=limite)
+        items: list[TallerSalida] = []
+        for item in pagina.elementos:
+            salida = TallerSalida.model_validate(item)
+            salida.rol_actual = await servicio.rol_actual(identidad.usuario_id, item.id)
+            items.append(salida)
         return PaginaTalleresSalida(
-            elementos=[TallerSalida.model_validate(item) for item in pagina.elementos],
-            cursor_siguiente=pagina.cursor_siguiente,
+            items=items,
+            siguiente_cursor=pagina.cursor_siguiente,
         )
 
     @router.get("/{taller_id}", response_model=TallerSalida)
     async def consultar(
         contexto: ContextoDependencia,
     ) -> TallerSalida:
-        return TallerSalida.model_validate(await servicio.consultar(contexto))
+        salida = TallerSalida.model_validate(await servicio.consultar(contexto))
+        salida.rol_actual = contexto.rol
+        return salida
 
     @router.patch("/{taller_id}", response_model=TallerSalida)
     async def actualizar(
         entrada: TallerCambio,
         contexto: ContextoDependencia,
     ) -> TallerSalida:
-        return TallerSalida.model_validate(
+        salida = TallerSalida.model_validate(
             await servicio.actualizar(
                 contexto,
                 nombre=entrada.nombre,
@@ -70,5 +79,7 @@ def create_router(
                 moneda_codigo=entrada.moneda_codigo,
             )
         )
+        salida.rol_actual = contexto.rol
+        return salida
 
     return router

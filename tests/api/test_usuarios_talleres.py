@@ -156,6 +156,7 @@ async def test_flujo_http_usuario_y_taller(api: FastAPI) -> None:
         "nombre": "Taller Norte",
         "pais_codigo": "CO",
         "moneda_codigo": "COP",
+        "rol_actual": "tecnico",
     }
 
 

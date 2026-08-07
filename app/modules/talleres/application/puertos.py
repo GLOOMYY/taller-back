@@ -39,6 +39,10 @@ class DirectorioAccesoTalleres(Protocol):
         """Devuelve identificadores de Talleres con Membresía vigente."""
         ...
 
+    async def obtener_rol_actual(self, usuario_id: str, taller_id: str) -> str | None:
+        """Devuelve el rol vigente en un Taller accesible."""
+        ...
+
 
 class UnidadCreacionTaller(Protocol):
     """Transacción Taller–Membresía dueño provista desde composición."""

@@ -14,8 +14,10 @@ def test_openapi_publica_recursos_de_fases_uno_y_dos() -> None:
         "/api/v1/talleres/{taller_id}/miembros/{usuario_id}",
         "/api/v1/talleres/{taller_id}/clientes",
         "/api/v1/talleres/{taller_id}/clientes/{cliente_id}",
-        "/api/v1/talleres/{taller_id}/referencias/paises",
-        "/api/v1/talleres/{taller_id}/referencias/monedas",
+        "/api/v1/referencias/paises",
+        "/api/v1/referencias/paises/{codigo}",
+        "/api/v1/referencias/monedas",
+        "/api/v1/referencias/monedas/{codigo}",
         "/api/v1/talleres/{taller_id}/tipos-dispositivo",
         "/api/v1/talleres/{taller_id}/marcas-dispositivo",
         "/api/v1/talleres/{taller_id}/modelos-dispositivo",
@@ -26,8 +28,31 @@ def test_openapi_publica_recursos_de_fases_uno_y_dos() -> None:
         "/api/v1/talleres/{taller_id}/repuestos",
         "/api/v1/talleres/{taller_id}/metodos-pago",
         "/api/v1/talleres/{taller_id}/ordenes/{orden_id}/pagos",
+        "/api/v1/talleres/{taller_id}/resumen-operativo",
+        "/api/v1/talleres/{taller_id}/ordenes/{orden_id}/seguimiento",
+        "/api/v1/talleres/{taller_id}/ordenes/{orden_id}/seguimiento/rotacion",
         "/api/v1/publico/seguimiento/{token}",
         "/api/v1/publico/seguimiento/{token}/comprobante.pdf",
         "/health/live",
         "/health/ready",
     } <= set(paths)
+
+
+def test_openapi_alinea_mutaciones_y_respuestas_tipadas() -> None:
+    esquema = app.openapi()
+    paths = esquema["paths"]
+
+    transicion = paths["/api/v1/talleres/{taller_id}/ordenes/{orden_id}/transiciones"][
+        "post"
+    ]
+    referencia = transicion["requestBody"]["content"]["application/json"]["schema"][
+        "$ref"
+    ]
+    assert referencia.endswith("/Transicion")
+    assert (
+        "estado_destino" in esquema["components"]["schemas"]["Transicion"]["properties"]
+    )
+
+    seguimiento = paths["/api/v1/talleres/{taller_id}/ordenes/{orden_id}/seguimiento"]
+    assert set(seguimiento) == {"post", "delete"}
+    assert "ErrorSalida" in esquema["components"]["schemas"]

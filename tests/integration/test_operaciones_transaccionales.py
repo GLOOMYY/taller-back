@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -122,6 +123,20 @@ def test_flujo_transaccional_stock_pago_entrega_y_garantia() -> None:
                     contexto, pago["id"], "Corrección de caja"
                 )
                 assert anulado["estado"] == "anulado"
+                hoy = datetime.now(UTC).date()
+                resumen = await servicio.resumen_operativo(contexto, hoy, hoy)
+                assert resumen["conteos_por_estado"]["entregado"] == 0
+                assert resumen["conteos_por_estado"]["en_proceso"] == 1
+                assert resumen["totales_por_moneda"] == [
+                    {
+                        "moneda_codigo": "COP",
+                        "moneda_simbolo": "$",
+                        "moneda_decimales": 2,
+                        "ordenado": "150.00",
+                        "pagado": "0.00",
+                        "pendiente": "150.00",
+                    }
+                ]
             finally:
                 await cliente.drop_database(nombre_base)
         finally:

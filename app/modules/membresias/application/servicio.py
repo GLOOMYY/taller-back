@@ -53,6 +53,11 @@ class ServicioMembresias:
         """Expone solo IDs accesibles al módulo Talleres."""
         return await self._repositorio.listar_taller_ids(usuario_id)
 
+    async def obtener_rol_actual(self, usuario_id: str, taller_id: str) -> str | None:
+        """Expone el rol mínimo requerido por el selector de Taller."""
+        membresia = await self._repositorio.obtener(taller_id, usuario_id)
+        return membresia.rol.value if membresia is not None else None
+
     async def crear_dueno_inicial(
         self,
         taller_id: str,

@@ -23,7 +23,7 @@ from app.modules.dispositivos.presentation.router import crear_router_dispositiv
 from app.modules.referencias.application.servicio import ServicioReferencias
 from app.modules.referencias.domain import Moneda, Pais
 from app.modules.referencias.presentation.router import crear_router_referencias
-from app.shared.application.contexto import ContextoTaller
+from app.shared.application.contexto import ContextoIdentidad, ContextoTaller
 
 
 class ReferenciasStub:
@@ -134,6 +134,9 @@ def construir_api() -> TestClient:
     def contexto(taller_id: str) -> ContextoTaller:
         return ContextoTaller("usuario", taller_id, "tecnico")
 
+    def identidad() -> ContextoIdentidad:
+        return ContextoIdentidad("usuario", "https://issuer.example/", "subject")
+
     def servicio_referencias() -> ServicioReferencias:
         return cast(ServicioReferencias, referencias)
 
@@ -146,7 +149,7 @@ def construir_api() -> TestClient:
     app = FastAPI()
     configurar_http(app)
     app.include_router(
-        crear_router_referencias(servicio_referencias, contexto), prefix="/api/v1"
+        crear_router_referencias(servicio_referencias, identidad), prefix="/api/v1"
     )
     app.include_router(
         crear_router_catalogos(servicio_catalogos, contexto), prefix="/api/v1"
@@ -160,7 +163,7 @@ def construir_api() -> TestClient:
 def test_referencias_son_legibles_y_catalogos_crean_recursos() -> None:
     cliente = construir_api()
 
-    paises = cliente.get("/api/v1/talleres/taller-a/referencias/paises")
+    paises = cliente.get("/api/v1/referencias/paises")
     tipo = cliente.post(
         "/api/v1/talleres/taller-a/tipos-dispositivo", json={"nombre": "Celular"}
     )
