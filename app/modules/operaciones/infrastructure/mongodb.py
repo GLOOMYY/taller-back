@@ -1,4 +1,4 @@
-"""Casos de uso asíncronos para Órdenes, stock y Pagos."""
+"""Adaptador MongoDB que coordina Órdenes, stock y Pagos transaccionales."""
 
 from __future__ import annotations
 

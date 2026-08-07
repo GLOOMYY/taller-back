@@ -6,7 +6,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.modules.operaciones.application.servicio import ServicioOperaciones
+from app.modules.operaciones.application.puertos import CasosUsoOperaciones
 from app.shared.application.contexto import ContextoTaller
 
 
@@ -116,7 +116,7 @@ class EntradaPago(BaseModel):
 
 
 def crear_router(
-    servicio: ServicioOperaciones, obtener_contexto: Callable[..., Any]
+    servicio: CasosUsoOperaciones, obtener_contexto: Callable[..., Any]
 ) -> APIRouter:
     """Construye las rutas con contexto tenant validado por Membresías."""
     router = APIRouter(prefix="/talleres/{taller_id}")

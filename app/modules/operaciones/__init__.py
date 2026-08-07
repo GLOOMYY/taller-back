@@ -1,5 +1,5 @@
 """Operación principal, inventario mínimo y pagos de fase 2."""
 
-from app.modules.operaciones.application.servicio import ServicioOperaciones
+from app.modules.operaciones.infrastructure.mongodb import ServicioOperaciones
 
 __all__ = ["ServicioOperaciones"]
