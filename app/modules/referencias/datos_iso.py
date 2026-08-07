@@ -6,6 +6,22 @@ from babel.numbers import get_currency_precision
 
 from app.modules.referencias.domain import Moneda, Pais
 
+_SIMBOLOS_COMUNES = {
+    "ARS": "$",
+    "BRL": "R$",
+    "CLP": "$",
+    "CNY": "¥",
+    "COP": "$",
+    "EUR": "€",
+    "GBP": "£",
+    "INR": "₹",
+    "JPY": "¥",
+    "KRW": "₩",
+    "MXN": "$",
+    "PEN": "S/",
+    "USD": "$",
+}
+
 
 def catalogos_iso() -> tuple[tuple[Pais, ...], tuple[Moneda, ...]]:
     """Devuelve países ISO 3166-1 y monedas ISO 4217 con nombres legibles."""
@@ -21,7 +37,10 @@ def catalogos_iso() -> tuple[tuple[Pais, ...], tuple[Moneda, ...]]:
         Moneda(
             codigo=str(item.alpha_3),
             nombre=str(locale.currencies.get(item.alpha_3, item.name)),
-            simbolo=str(locale.currency_symbols.get(item.alpha_3, item.alpha_3)),
+            simbolo=_SIMBOLOS_COMUNES.get(
+                str(item.alpha_3),
+                str(locale.currency_symbols.get(item.alpha_3, item.alpha_3)),
+            ),
             decimales=get_currency_precision(str(item.alpha_3)),
         )
         for item in pycountry.currencies
