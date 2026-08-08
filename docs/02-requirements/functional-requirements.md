@@ -4,7 +4,7 @@ Todos los requisitos de esta tabla están **Aceptados** al nivel de detalle escr
 
 | ID | Fase | Requisito |
 |---|---:|---|
-| RF-USU-001 | 1 | Registrar el Usuario interno de una identidad OIDC válida con nombre y `nombre_usuario` global único. |
+| RF-USU-001 | 1 | Registrar una cuenta JWT local con nombre, contraseña y `nombre_usuario` global único. |
 | RF-USU-002 | 1 | Consultar y editar el perfil del Usuario autenticado. |
 | RF-TAL-001 | 1–2 | Crear un Taller con nombre, país y moneda y confirmar atómicamente Taller, dueño y método `Efectivo`. |
 | RF-TAL-002 | 1 | Listar, consultar y editar Talleres accesibles para el Usuario autenticado. |

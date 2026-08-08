@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     entorno: Literal["local", "test", "production"] = "local"
     mongodb_uri: str = "mongodb://localhost:27017/?replicaSet=rs0"
     mongodb_database: str = "taller"
+    jwt_secreto: SecretStr = SecretStr(
+        "cambia-este-secreto-jwt-local-de-32-caracteres"
+    )
+    jwt_emisor: str = "taller-api-local"
+    jwt_expiracion_minutos: int = 60
+    # Campos heredados conservados solo para no romper configuraciones antiguas;
+    # el runtime ya no los utiliza para autenticar.
     oidc_issuer: AnyHttpUrl = AnyHttpUrl("https://example.auth0.com/")
     oidc_audience: str = "https://taller-api.local"
     oidc_jwks_url: AnyHttpUrl | None = None
@@ -32,7 +39,7 @@ class Settings(BaseSettings):
         ]
     )
 
-    @field_validator("mongodb_uri", "mongodb_database", "oidc_audience")
+    @field_validator("mongodb_uri", "mongodb_database", "jwt_emisor")
     @classmethod
     def no_vacio(cls, value: str) -> str:
         if not value.strip():
@@ -41,6 +48,7 @@ class Settings(BaseSettings):
 
     @property
     def jwks_url(self) -> str:
+        """Compatibilidad de lectura para herramientas de la migración."""
         if self.oidc_jwks_url is not None:
             return str(self.oidc_jwks_url)
         return f"{str(self.oidc_issuer).rstrip('/')}/.well-known/jwks.json"
@@ -51,8 +59,8 @@ class Settings(BaseSettings):
 
         if self.entorno != "production":
             return self
-        if "example.auth0.com" in str(self.oidc_issuer):
-            raise ValueError("production requiere un issuer OIDC real")
+        if self.jwt_secreto.get_secret_value().startswith("cambia-este"):
+            raise ValueError("production requiere un secreto JWT real")
         if "localhost" in self.mongodb_uri or "127.0.0.1" in self.mongodb_uri:
             raise ValueError("production requiere una URI MongoDB no local")
         if self.seguimiento_hmac_secreto.get_secret_value().startswith(

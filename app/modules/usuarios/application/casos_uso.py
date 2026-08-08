@@ -6,6 +6,7 @@ from app.modules.usuarios.domain.modelos import (
     Usuario,
     normalizar_nombre_usuario,
 )
+from app.security.passwords import hash_password, verify_password
 from app.shared.application.errores import Conflicto, NoAutenticado
 
 
@@ -22,6 +23,7 @@ class ServicioUsuarios:
         *,
         nombre: str,
         nombre_usuario: str,
+        password_hash: str | None = None,
     ) -> Usuario:
         """Registra la identidad OIDC verificada como Usuario interno."""
         if await self._repositorio.obtener_por_identidad(identidad) is not None:
@@ -31,6 +33,7 @@ class ServicioUsuarios:
             identidad=identidad,
             nombre=nombre,
             nombre_usuario=nombre_usuario,
+            password_hash=password_hash,
         )
         if (
             await self._repositorio.obtener_por_nombre_usuario(usuario.nombre_usuario)
@@ -47,6 +50,33 @@ class ServicioUsuarios:
             ) from error
         except IdentidadDuplicada as error:
             raise Conflicto("El Usuario ya está registrado") from error
+        return usuario
+
+    async def registrar_local(
+        self,
+        *,
+        nombre: str,
+        nombre_usuario: str,
+        password: str,
+    ) -> Usuario:
+        """Registra una cuenta local para autenticación JWT propia."""
+        usuario_id = self._generador_id.generar()
+        return await self.registrar(
+            IdentidadOidc(issuer="taller-local", subject=usuario_id),
+            nombre=nombre,
+            nombre_usuario=nombre_usuario,
+            password_hash=hash_password(password),
+        )
+
+    async def autenticar_local(self, *, nombre_usuario: str, password: str) -> Usuario:
+        """Valida credenciales locales sin revelar si existe el usuario."""
+        usuario = await self._repositorio.obtener_por_nombre_usuario(
+            normalizar_nombre_usuario(nombre_usuario)
+        )
+        if usuario is None or usuario.password_hash is None or not verify_password(
+            password, usuario.password_hash
+        ):
+            raise NoAutenticado("Credenciales inválidas")
         return usuario
 
     async def consultar(self, identidad: IdentidadOidc) -> Usuario:
@@ -94,6 +124,10 @@ class ServicioUsuarios:
         return await self._repositorio.obtener_por_identidad(
             IdentidadOidc(issuer=issuer, subject=subject)
         )
+
+    async def obtener_por_id(self, usuario_id: str) -> Usuario | None:
+        """Expone la resolución pública consumida por JWT local."""
+        return await self._repositorio.obtener_por_id(usuario_id)
 
     async def buscar_por_nombre_usuario(self, nombre_usuario: str) -> Usuario | None:
         """Expone la resolución pública consumida por Membresías."""

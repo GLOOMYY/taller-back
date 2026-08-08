@@ -5,10 +5,10 @@
 
 ## Decisión
 
-FastAPI será el adaptador HTTP asíncrono bajo `/api/v1`. Auth0 será el proveedor
-OIDC administrado y el backend validará tokens JWT con PyJWT contra el `issuer`,
-la audiencia y JWKS configurados. La identidad interna se resuelve mediante la
-clave única `issuer + sub`; no se almacenan contraseñas.
+FastAPI será el adaptador HTTP asíncrono bajo `/api/v1`. La API gestionará
+cuentas locales y validará tokens JWT HS256 con PyJWT contra el emisor
+configurado. La identidad interna se resuelve mediante la clave única
+`issuer + sub`; las contraseñas solo se almacenan como hash.
 
 La API usa recursos y campos en español, OpenAPI generado por FastAPI y errores
 seguros con `codigo`, `mensaje` y `correlacion_id`. Los listados usan cursor
@@ -18,6 +18,5 @@ Los IDs externos son strings opacos.
 ## Consecuencias
 
 Los secretos y URLs se reciben por variables de entorno. La verificación exige
-firma, expiración, issuer y audience correctos. FastAPI, PyJWT o MongoDB no se
-importan desde Domain. Producción, MFA, recuperación y gestión del tenant Auth0
-quedan fuera de fase 1.
+firma, expiración e issuer correctos. FastAPI, PyJWT o MongoDB no se importan
+desde Domain. Producción, MFA y recuperación quedan fuera de fase 1.

@@ -23,6 +23,12 @@ class ResolverUsuarioPorIdentidad(Protocol):
     ) -> UsuarioIdentidadReferencia | None:
         """Busca el Usuario enlazado a ``issuer + subject``."""
 
+    async def obtener_por_id(
+        self, usuario_id: str
+    ) -> UsuarioIdentidadReferencia | None:
+        """Busca un Usuario por el ``sub`` del JWT local."""
+        ...
+
 
 class VerificadorToken(Protocol):
     """Puerto para verificar un bearer token administrado."""
@@ -45,7 +51,12 @@ class ServicioIdentidad:
     async def autenticar(self, token: str) -> ContextoIdentidad:
         """Exige token válido y Usuario interno registrado."""
         oidc = await self._verificador.verificar(token)
-        usuario = await self._usuarios.obtener_por_identidad(oidc.issuer, oidc.subject)
+        if oidc.issuer == "taller-local":
+            usuario = await self._usuarios.obtener_por_id(oidc.subject)
+        else:
+            usuario = await self._usuarios.obtener_por_identidad(
+                oidc.issuer, oidc.subject
+            )
         if usuario is None:
             raise NoAutenticado("La identidad no corresponde a un Usuario registrado")
         return ContextoIdentidad(

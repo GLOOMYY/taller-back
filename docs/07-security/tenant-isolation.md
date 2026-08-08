@@ -7,7 +7,7 @@ contexto de otro.
 
 ## Controles aceptados
 
-1. Verificar el JWT OIDC y mapear `issuer + sub` a un Usuario interno.
+1. Verificar el JWT local y mapear `issuer + sub` a un Usuario interno.
 2. Resolver la Membresía con ambos `taller_id` y `usuario_id` del contexto.
 3. Construir y pasar `ContextoTaller` explícito a cada caso de uso tenant-scoped.
 4. Autorizar la capacidad según el rol de esa Membresía.

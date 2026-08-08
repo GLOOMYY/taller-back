@@ -2,24 +2,17 @@
 
 ## Decisión aceptada para fase 1
 
-Auth0 es el proveedor administrado OIDC. La API recibe access tokens JWT y no
-almacena contraseñas, sesiones ni secretos del Usuario. La configuración por
-entorno declara el issuer HTTPS del tenant, la audiencia de la API y la URL
-JWKS; ningún valor sensible se embebe en código o fixtures.
-El issuer se conserva exactamente como lo publica OIDC (incluido el `/` final
-de Auth0) y debe coincidir literalmente durante verificación y mapeo interno.
-
-La verificación usa `PyJWT[crypto]` 2.10.x y `PyJWKClient`, con caché/rotación
-de JWKS del proveedor. El algoritmo permitido inicial es `RS256`; nunca se toma
-la lista de algoritmos desde el token.
+La API administra cuentas locales y emite tokens JWT firmados con HS256. Las
+contraseñas se almacenan únicamente como hashes `scrypt`; nunca se persisten en
+claro. El secreto, emisor y expiración se inyectan por entorno mediante
+`TALLER_JWT_SECRETO`, `TALLER_JWT_EMISOR` y `TALLER_JWT_EXPIRACION_MINUTOS`.
 
 ## Flujo
 
 1. Presentation extrae un esquema `Bearer` del header `Authorization`.
-2. El adaptador selecciona la clave por `kid` y verifica firma, `issuer`,
-   `audience`, `exp`, `iat`, `iss`, `sub` y `aud`.
-3. La pareja verificada `issuer + sub` se resuelve mediante el contrato público
-   de Usuarios.
+2. El adaptador verifica firma HS256, `issuer`, `exp`, `iat`, `iss`, `sub` y
+   el tipo de token.
+3. El `sub` verificado se resuelve mediante el contrato público de Usuarios.
 4. Solo un Usuario interno existente produce `ContextoIdentidad`.
 5. Para una ruta tenant-scoped, Membresías deriva después `ContextoTaller`.
 
@@ -28,12 +21,11 @@ event loop. Las pruebas inyectan dobles de JWKS/decoder y nunca acceden a red.
 
 ## Denegaciones
 
-Token ausente, esquema incorrecto, firma inválida, token expirado, emisor o
-audiencia incorrectos, claims obligatorios ausentes e identidad sin Usuario
+Token ausente, esquema incorrecto, firma inválida, token expirado, emisor
+incorrecto, claims obligatorios ausentes e identidad sin Usuario
 interno producen `401` con mensaje seguro. No se registran tokens, claims
 completos, payloads ni datos personales.
 
-El mapeo `issuer + sub` implementa BR-021 y la política HTTP implementa AC-023.
+El mapeo de `sub` implementa BR-021 y la política HTTP implementa AC-023.
 
-MFA, recuperación de cuenta, refresh tokens y configuración del cliente Auth0
-quedan fuera del backend fase 1.
+MFA, recuperación de cuenta y refresh tokens quedan fuera del backend fase 1.

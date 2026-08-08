@@ -9,7 +9,7 @@
 - Cada Taller es un tenant y el aislamiento es transversal.
 - Los módulos y fases son los definidos en el roadmap; los candidatos no se promueven implícitamente.
 - No se fijan esquemas concretos de base de datos antes de conocer agregados y patrones de consulta.
-- FastAPI es el adaptador HTTP; Auth0 es el proveedor OIDC administrado; PyJWT verifica JWT y PyMongo Async es el driver MongoDB.
+- FastAPI es el adaptador HTTP; la API emite y verifica JWT locales con PyJWT y PyMongo Async es el driver MongoDB.
 - ReportLab es el adaptador PDF de fase 2 y debe ejecutarse mediante
   `asyncio.to_thread`.
 - La base existente no contiene datos que migrar: los campos nuevos obligatorios

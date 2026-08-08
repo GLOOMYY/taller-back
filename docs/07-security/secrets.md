@@ -12,8 +12,8 @@ Gestor de secretos, rotación, responsables y respuesta a exposición están **P
 
 ## Seguimiento público de fase 2
 
-La clave HMAC es configuración secreta obligatoria, separada por entorno y no
-reutilizada como credencial OIDC. Los tokens firmados no se persisten ni se
+La clave HMAC de JWT es configuración secreta obligatoria, separada por entorno
+y no reutilizada como secreto de seguimiento. Los tokens firmados no se persisten ni se
 incluyen en logs, errores, métricas o correlación. Rotación de enlace incrementa
 la versión de Orden; rotación del secreto de infraestructura requiere una
 operación explícita y puede invalidar enlaces existentes.

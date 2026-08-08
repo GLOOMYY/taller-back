@@ -17,7 +17,7 @@ puede tener roles distintos en Talleres diferentes.
 
 ## Orden de controles
 
-1. Verificar OIDC y resolver Usuario interno (`ContextoIdentidad`).
+1. Verificar JWT y resolver Usuario interno (`ContextoIdentidad`).
 2. Resolver la Membresía exacta `(taller_id, usuario_id)`.
 3. Construir `ContextoTaller` con el rol persistido.
 4. Comprobar la capacidad antes de consultar o mutar el recurso.

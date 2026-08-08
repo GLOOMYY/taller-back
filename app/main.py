@@ -22,6 +22,7 @@ from app.modules.operaciones.presentation.router import (
 from app.modules.referencias.presentation.router import crear_router_referencias
 from app.modules.seguimiento.presentation.router import crear_router_seguimiento
 from app.modules.talleres.presentation.router import create_router as router_talleres
+from app.modules.usuarios.presentation.auth_router import crear_router_auth
 from app.modules.usuarios.presentation.router import create_router as router_usuarios
 
 
@@ -68,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) = crear_dependencias(contenedor)
     api = APIRouter(prefix="/api/v1")
     api.include_router(router_usuarios(contenedor.usuarios, obtener_oidc))
+    api.include_router(crear_router_auth(contenedor.usuarios, contenedor.jwt_local))
     api.include_router(
         router_talleres(
             contenedor.talleres,

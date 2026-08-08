@@ -24,7 +24,7 @@ Este es el catálogo canónico. Todas las reglas listadas están **Confirmadas/A
 | BR-018 | Un dueño puede vincular un Usuario ya registrado mediante su `nombre_usuario`, cambiar su rol o retirarlo del Taller. |
 | BR-019 | Un Taller debe conservar al menos una Membresía con rol `dueno`; no se permite retirar ni degradar al último dueño. |
 | BR-020 | Un Cliente requiere nombre y puede registrar teléfono, correo y notas; siempre se crea, consulta y actualiza dentro de un Taller autorizado y no se elimina en fase 1. |
-| BR-021 | La identidad OIDC de un Usuario se vincula de forma única mediante `issuer + sub`; la plataforma no almacena contraseñas. |
+| BR-021 | La cuenta local de un Usuario se vincula de forma única mediante `sub` del JWT; la plataforma almacena únicamente un hash de contraseña. |
 | BR-022 | Países y Monedas son catálogos ISO globales de solo lectura para la operación; exponen códigos y nombres legibles y, para Monedas, símbolo y cantidad de decimales. |
 | BR-023 | Todo Taller requiere `pais_codigo` y `moneda_codigo`; ambos pueden cambiar y no se exige correspondencia entre país y moneda. |
 | BR-024 | Crear un Taller confirma atómicamente Taller, Membresía inicial `dueno` y método de pago activo `Efectivo`. |

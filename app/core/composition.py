@@ -44,7 +44,7 @@ from app.modules.usuarios.infrastructure.mongo import (
 )
 from app.modules.usuarios.infrastructure.mongo import RepositorioUsuariosMongo
 from app.security.dependencias import crear_dependencia_identidad
-from app.security.oidc import VerificadorOidcPyJwt
+from app.security.jwt_local import ServicioJwtLocal
 from app.security.servicio import ServicioIdentidad
 from app.shared.application import NoAutenticado
 from app.shared.application.contexto import ContextoIdentidad, ContextoTaller
@@ -137,7 +137,7 @@ class Contenedor:
     repositorio_usuarios: RepositorioUsuariosMongo
     repositorio_membresias: RepositorioMembresiasMongo
     repositorio_clientes: RepositorioClientesMongo
-    verificar_oidc: VerificadorOidcPyJwt
+    jwt_local: ServicioJwtLocal
 
     async def crear_indices(self) -> None:
         """Materializa las restricciones de persistencia aceptadas."""
@@ -211,10 +211,10 @@ def crear_contenedor(
     )
     servicio_seguimiento = ServicioSeguimientoPublico(base_datos, tokens_seguimiento)
     servicio_comprobantes = ServicioComprobantes(GeneradorComprobanteReportLab())
-    verificador = VerificadorOidcPyJwt(
-        issuer=str(settings.oidc_issuer),
-        audience=settings.oidc_audience,
-        jwks_url=settings.jwks_url,
+    jwt_local = ServicioJwtLocal(
+        settings.jwt_secreto.get_secret_value(),
+        emisor=settings.jwt_emisor,
+        minutos_expiracion=settings.jwt_expiracion_minutos,
     )
     return Contenedor(
         settings=settings,
@@ -232,7 +232,7 @@ def crear_contenedor(
         repositorio_usuarios=repositorio_usuarios,
         repositorio_membresias=repositorio_membresias,
         repositorio_clientes=repositorio_clientes,
-        verificar_oidc=verificador,
+        jwt_local=jwt_local,
     )
 
 
@@ -244,21 +244,21 @@ def crear_dependencias(
     Callable[..., Any],
     Callable[..., Any],
 ]:
-    """Crea dependencias OIDC, Usuario, tenant y Clientes para routers."""
+    """Crea dependencias JWT, Usuario, tenant y Clientes para routers."""
 
     async def obtener_oidc(request: Request) -> IdentidadOidc:
         autorizacion = request.headers.get("Authorization", "")
         esquema, separador, token = autorizacion.partition(" ")
         if not separador or esquema.lower() != "bearer" or not token.strip():
             raise NoAutenticado("Token ausente o inválido")
-        identidad = await contenedor.verificar_oidc.verificar(token.strip())
+        identidad = await contenedor.jwt_local.verificar(token.strip())
         return IdentidadOidc(
             issuer=identidad.issuer,
             subject=identidad.subject,
         )
 
     servicio_identidad = ServicioIdentidad(
-        contenedor.verificar_oidc,
+        contenedor.jwt_local,
         contenedor.usuarios,
     )
     obtener_identidad = crear_dependencia_identidad(servicio_identidad)

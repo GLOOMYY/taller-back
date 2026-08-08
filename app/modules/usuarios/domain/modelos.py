@@ -47,6 +47,7 @@ class Usuario:
     identidad: IdentidadOidc
     nombre: str
     nombre_usuario: str
+    password_hash: str | None = None
 
     def __post_init__(self) -> None:
         nombre = self.nombre.strip()
@@ -73,4 +74,5 @@ class Usuario:
             nombre_usuario=(
                 self.nombre_usuario if nombre_usuario is None else nombre_usuario
             ),
+            password_hash=self.password_hash,
         )

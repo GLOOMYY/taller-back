@@ -12,7 +12,7 @@
 - Fase 4: Reportes.
 - Persistencia futura en MongoDB, modelada por agregados y patrones de consulta.
 - Estándares arquitectónicos, de desarrollo, seguridad y pruebas descritos aquí.
-- MVP local de fase 1 con FastAPI, MongoDB, OIDC, pruebas y CI.
+- MVP local de fase 1 con FastAPI, MongoDB, JWT local, pruebas y CI.
 
 ## Fuera del alcance actual
 

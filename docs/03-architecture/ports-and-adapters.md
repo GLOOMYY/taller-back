@@ -17,8 +17,8 @@ están confirmados.
 
 ## Adaptadores de salida
 
-PyMongo Async es el adaptador de persistencia y Auth0/PyJWT el adaptador de
-identidad de fase 1. Mensajería, archivos y otros terceros no están confirmados.
+PyMongo Async es el adaptador de persistencia y PyJWT con firma HMAC el
+adaptador de identidad de fase 1. Mensajería, archivos y otros terceros no están confirmados.
 
 ## Criterios
 

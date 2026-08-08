@@ -76,13 +76,14 @@ class RepositorioUsuariosMongo:
             self._traducir_duplicado(error)
 
     @staticmethod
-    def _a_documento(usuario: Usuario) -> dict[str, str]:
+    def _a_documento(usuario: Usuario) -> dict[str, str | None]:
         return {
             "_id": usuario.id,
             "issuer": usuario.identidad.issuer,
             "subject": usuario.identidad.subject,
             "nombre": usuario.nombre,
             "nombre_usuario": usuario.nombre_usuario,
+            "password_hash": usuario.password_hash,
         }
 
     @staticmethod
@@ -95,6 +96,7 @@ class RepositorioUsuariosMongo:
             ),
             nombre=str(documento["nombre"]),
             nombre_usuario=str(documento["nombre_usuario"]),
+            password_hash=documento.get("password_hash"),
         )
 
     @staticmethod

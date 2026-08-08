@@ -4,7 +4,7 @@
 
 | Colección | Clave | Opciones | Patrón que soporta |
 |---|---|---|---|
-| `usuarios` | `issuer`, `subject` | único | mapear identidad OIDC a un Usuario |
+| `usuarios` | `issuer`, `subject` | único | mapear identidad JWT a un Usuario |
 | `usuarios` | `nombre_usuario` | único | registro global y alta de miembro por `@` |
 | `membresias` | `taller_id`, `usuario_id` | único | evitar Membresía duplicada y resolver acceso |
 | `membresias` | `usuario_id`, `taller_id` | no único | listar Talleres accesibles por Usuario |

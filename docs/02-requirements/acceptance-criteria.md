@@ -19,7 +19,7 @@ Estos criterios son **Aceptados** para evaluar futuras entregas dentro de su fas
 | AC-013 | Las dependencias respetan la dirección definida y no conectan módulos mediante internals o colecciones ajenas (RNF-003, RNF-007). |
 | AC-014 | El código Python futuro supera los controles acordados de estilo, tipos, docstrings y pruebas (RNF-005). |
 | AC-015 | La entrega no introduce módulos, reglas, campos, estados, endpoints o integraciones como Confirmados sin aprobación trazable. |
-| AC-016 | Una identidad OIDC válida puede registrar un único Usuario interno; `issuer + sub` y el `nombre_usuario` normalizado son únicos globalmente. |
+| AC-016 | Una cuenta JWT local puede registrar un único Usuario interno; `issuer + sub` y el `nombre_usuario` normalizado son únicos globalmente. |
 | AC-017 | El creador de un Taller queda como dueño en la misma transacción y nunca se observa un Taller creado sin dueño. |
 | AC-018 | Dueños y técnicos pueden editar Taller y gestionar Clientes, pero un técnico miembro recibe denegación al administrar Membresías. |
 | AC-019 | Añadir una Membresía exige un `nombre_usuario` registrado y no permite duplicar el vínculo Usuario–Taller. |

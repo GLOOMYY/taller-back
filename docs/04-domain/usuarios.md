@@ -12,7 +12,7 @@ Representar la identidad interna de las personas que usan la plataforma
 `Usuario` contiene:
 
 - `id`: identificador interno opaco.
-- `issuer` y `subject`: clave compuesta de la identidad OIDC administrada.
+- `issuer` y `subject`: identificadores de la cuenta JWT local.
 - `nombre`: nombre obligatorio.
 - `nombre_usuario`: identificador público global, obligatorio y único.
 
@@ -21,16 +21,20 @@ y convirtiendo a minúsculas. Su forma canónica tiene entre 3 y 30 caracteres y
 solo acepta letras ASCII minúsculas, números, punto y guion bajo:
 `^[a-z0-9._]{3,30}$` (BR-015).
 
-La combinación `issuer + subject` es única y enlaza una identidad OIDC
-verificada con un único Usuario interno (BR-021). No se almacenan contraseñas.
+La combinación `issuer + subject` es única y enlaza una identidad JWT
+verificada con un único Usuario interno (BR-021). La contraseña se almacena
+únicamente como hash scrypt.
 
 ## Casos de uso aceptados
 
-- Registrar el Usuario interno después de verificar la identidad OIDC:
+- Registrar una cuenta local y emitir un JWT:
+  `POST /api/v1/auth/registro`.
+- Iniciar sesión con una cuenta local:
+  `POST /api/v1/auth/login`.
   `POST /api/v1/usuarios/me`.
 - Consultar el perfil actual: `GET /api/v1/usuarios/me`.
 - Editar `nombre` o `nombre_usuario`: `PATCH /api/v1/usuarios/me`.
-- Resolver mediante contrato público un Usuario por identidad OIDC o por
+- Resolver mediante contrato público un Usuario por identidad JWT o por
   `nombre_usuario`, para consumidores autorizados como autenticación y
   Membresías.
 
