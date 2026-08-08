@@ -14,9 +14,9 @@ def test_cliente_exige_nombre() -> None:
 
 def test_cliente_permite_datos_opcionales() -> None:
     """RF-CLI-001: teléfono, correo y notas pueden omitirse."""
-    cliente = Cliente.nuevo(taller_id="taller-a", nombre="  Ana  ")
+    cliente = Cliente.nuevo(taller_id="taller-a", nombre="  Isabella  ")
 
-    assert cliente.nombre == "Ana"
+    assert cliente.nombre == "Isabella"
     assert cliente.telefono is None
     assert cliente.correo is None
     assert cliente.notas is None
@@ -27,9 +27,9 @@ def test_actualizacion_parcial_distingue_omitido_de_nulo() -> None:
     cliente = Cliente(
         id="cliente-1",
         taller_id="taller-a",
-        nombre="Ana",
+        nombre="Isabella",
         telefono="123",
-        correo="ana@example.test",
+        correo="isabella@example.test",
     )
 
     actualizado = cliente.actualizar(
@@ -37,12 +37,12 @@ def test_actualizacion_parcial_distingue_omitido_de_nulo() -> None:
     )
 
     assert actualizado.telefono is None
-    assert actualizado.correo == "ana@example.test"
+    assert actualizado.correo == "isabella@example.test"
 
 
 def test_actualizacion_vacia_es_invalida() -> None:
     """RF-CLI-002: patch exige al menos un campo."""
-    cliente = Cliente(id="cliente-1", taller_id="taller-a", nombre="Ana")
+    cliente = Cliente(id="cliente-1", taller_id="taller-a", nombre="Isabella")
 
     with pytest.raises(ClienteInvalido):
         cliente.actualizar(CambiosCliente())

@@ -29,7 +29,7 @@ Propietario: Clientes. Un documento representa un Cliente local del Taller:
 {
   _id: ObjectId,
   taller_id: "<id opaco de Taller>",
-  nombre: "Ana",
+  nombre: "Isabella",
   telefono: "opcional",
   correo: "opcional",
   notas: "opcional"

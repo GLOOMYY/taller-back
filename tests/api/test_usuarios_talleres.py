@@ -136,7 +136,7 @@ async def test_flujo_http_usuario_y_taller(api: FastAPI) -> None:
     ) as cliente:
         usuario = await cliente.post(
             "/api/v1/usuarios/me",
-            json={"nombre": "Ana", "nombre_usuario": "@ANA.01"},
+            json={"nombre": "Isabella", "nombre_usuario": "@ISABELLA.01"},
         )
         taller = await cliente.post(
             "/api/v1/talleres",
@@ -149,7 +149,7 @@ async def test_flujo_http_usuario_y_taller(api: FastAPI) -> None:
         consulta = await cliente.get("/api/v1/talleres/taller-1")
 
     assert usuario.status_code == 201
-    assert usuario.json()["nombre_usuario"] == "ana.01"
+    assert usuario.json()["nombre_usuario"] == "isabella.01"
     assert taller.status_code == 201
     assert consulta.json() == {
         "id": "taller-1",
@@ -170,7 +170,7 @@ async def test_api_rechaza_nombre_usuario_invalido_y_limite_excesivo(
     ) as cliente:
         usuario = await cliente.post(
             "/api/v1/usuarios/me",
-            json={"nombre": "Ana", "nombre_usuario": "a-b"},
+            json={"nombre": "Isabella", "nombre_usuario": "a-b"},
         )
         talleres = await cliente.get("/api/v1/talleres?limite=101")
 

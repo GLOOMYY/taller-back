@@ -73,12 +73,12 @@ def test_crear_y_listar_solo_devuelve_clientes_del_taller() -> None:
     async def escenario() -> None:
         repositorio = RepositorioEnMemoria()
         servicio = ServicioClientes(repositorio)
-        await servicio.crear(contexto("taller-a"), nombre="Ana")
+        await servicio.crear(contexto("taller-a"), nombre="Isabella")
         await servicio.crear(contexto("taller-b"), nombre="Beto")
 
         pagina = await servicio.listar(contexto("taller-a"))
 
-        assert [cliente.nombre for cliente in pagina.items] == ["Ana"]
+        assert [cliente.nombre for cliente in pagina.items] == ["Isabella"]
 
     asyncio.run(escenario())
 

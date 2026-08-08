@@ -54,7 +54,7 @@ class GeneradorFijo:
 
 def test_normaliza_arroba_mayusculas_y_espacios() -> None:
     """BR-015/AC-016: el identificador global usa forma canónica."""
-    assert normalizar_nombre_usuario("  @Ana.01 ") == "ana.01"
+    assert normalizar_nombre_usuario("  @Isabella.01 ") == "isabella.01"
 
 
 @pytest.mark.parametrize("valor", ["ab", "a-b", "ábc", "nombre usuario", "a" * 31])
@@ -70,15 +70,15 @@ async def test_registra_y_actualiza_el_perfil_actual() -> None:
     identidad = IdentidadOidc("https://issuer.example", "sub-1")
 
     creado = await servicio.registrar(
-        identidad, nombre=" Ana ", nombre_usuario="@Ana.01"
+        identidad, nombre=" Isabella ", nombre_usuario="@Isabella.01"
     )
     actualizado = await servicio.actualizar(
-        identidad, nombre="Ana María", nombre_usuario="ana_01"
+        identidad, nombre="Isabella María", nombre_usuario="isabella_01"
     )
 
-    assert creado.nombre_usuario == "ana.01"
-    assert actualizado.nombre == "Ana María"
-    assert actualizado.nombre_usuario == "ana_01"
+    assert creado.nombre_usuario == "isabella.01"
+    assert actualizado.nombre == "Isabella María"
+    assert actualizado.nombre_usuario == "isabella_01"
 
 
 @pytest.mark.asyncio

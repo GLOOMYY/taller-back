@@ -60,7 +60,7 @@ def test_repositorio_crud_paginacion_indices_y_aislamiento() -> None:
                     contexto_a,
                     Cliente.nuevo(
                         taller_id=contexto_a.taller_id,
-                        nombre="Ana",
+                        nombre="Isabella",
                         telefono="123",
                     ),
                 )
@@ -98,12 +98,12 @@ def test_repositorio_crud_paginacion_indices_y_aislamiento() -> None:
                     Cliente(
                         id=primero.id,
                         taller_id=contexto_a.taller_id,
-                        nombre="Ana María",
+                        nombre="Isabella María",
                         telefono=None,
                     ),
                 )
                 assert actualizado is not None
-                assert actualizado.nombre == "Ana María"
+                assert actualizado.nombre == "Isabella María"
                 assert actualizado.telefono is None
 
                 indices = await coleccion.index_information()

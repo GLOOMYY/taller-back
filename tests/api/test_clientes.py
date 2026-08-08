@@ -87,7 +87,7 @@ def test_flujo_crear_listar_obtener_y_editar() -> None:
 
     creado = cliente_http.post(
         "/api/v1/talleres/taller-a/clientes",
-        json={"nombre": "Ana", "telefono": "123"},
+        json={"nombre": "Isabella", "telefono": "123"},
     )
     cliente_id = creado.json()["id"]
     listado = cliente_http.get("/api/v1/talleres/taller-a/clientes")
@@ -99,7 +99,7 @@ def test_flujo_crear_listar_obtener_y_editar() -> None:
 
     assert creado.status_code == 201
     assert len(listado.json()["items"]) == 1
-    assert obtenido.json()["nombre"] == "Ana"
+    assert obtenido.json()["nombre"] == "Isabella"
     assert editado.json()["telefono"] is None
     assert editado.json()["notas"] == "Prefiere la tarde"
 
@@ -121,7 +121,7 @@ def test_no_existe_delete_y_entradas_invalidas_son_422() -> None:
     """RF-CLI-002: no hay borrado; nombre y patch vacío se validan."""
     cliente_http, _ = construir_cliente()
     creado = cliente_http.post(
-        "/api/v1/talleres/taller-a/clientes", json={"nombre": "Ana"}
+        "/api/v1/talleres/taller-a/clientes", json={"nombre": "Isabella"}
     )
     cliente_id = creado.json()["id"]
 
