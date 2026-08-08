@@ -48,4 +48,6 @@ class ServicioJwtLocal:
         subject = claims.get("sub")
         if not isinstance(subject, str) or not subject.strip():
             raise NoAutenticado("Token ausente o inválido")
-        return IdentidadOidc(issuer=self._emisor, subject=subject)
+        # El emisor criptográfico se valida contra ``self._emisor``; el
+        # identificador interno permite al resolver distinguir sesiones locales.
+        return IdentidadOidc(issuer="taller-local", subject=subject)

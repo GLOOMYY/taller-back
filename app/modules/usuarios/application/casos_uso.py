@@ -24,12 +24,13 @@ class ServicioUsuarios:
         nombre: str,
         nombre_usuario: str,
         password_hash: str | None = None,
+        usuario_id: str | None = None,
     ) -> Usuario:
         """Registra la identidad OIDC verificada como Usuario interno."""
         if await self._repositorio.obtener_por_identidad(identidad) is not None:
             raise Conflicto("El Usuario ya está registrado")
         usuario = Usuario(
-            id=self._generador_id.generar(),
+            id=usuario_id or self._generador_id.generar(),
             identidad=identidad,
             nombre=nombre,
             nombre_usuario=nombre_usuario,
@@ -66,6 +67,7 @@ class ServicioUsuarios:
             nombre=nombre,
             nombre_usuario=nombre_usuario,
             password_hash=hash_password(password),
+            usuario_id=usuario_id,
         )
 
     async def autenticar_local(self, *, nombre_usuario: str, password: str) -> Usuario:

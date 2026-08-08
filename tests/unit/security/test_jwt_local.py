@@ -13,7 +13,7 @@ async def test_emite_y_verifica_jwt_local() -> None:
         "s" * 40, emisor="taller-api-local", minutos_expiracion=60
     )
     identidad = await servicio.verificar(servicio.emitir("usuario-1"))
-    assert identidad.issuer == "taller-api-local"
+    assert identidad.issuer == "taller-local"
     assert identidad.subject == "usuario-1"
 
 
