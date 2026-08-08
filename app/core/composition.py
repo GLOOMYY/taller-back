@@ -252,10 +252,10 @@ def crear_dependencias(
         if not separador or esquema.lower() != "bearer" or not token.strip():
             raise NoAutenticado("Token ausente o inválido")
         identidad = await contenedor.jwt_local.verificar(token.strip())
-        return IdentidadOidc(
-            issuer=identidad.issuer,
-            subject=identidad.subject,
-        )
+        usuario = await contenedor.usuarios.obtener_por_id(identidad.subject)
+        if usuario is None:
+            raise NoAutenticado("La identidad no corresponde a un Usuario registrado")
+        return usuario.identidad
 
     servicio_identidad = ServicioIdentidad(
         contenedor.jwt_local,
